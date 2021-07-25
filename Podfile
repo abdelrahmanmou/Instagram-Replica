@@ -2,18 +2,18 @@
 # platform :ios, '9.0'
 
 target 'Instagram' do
-  # Comment the next line if you don't want to use dynamic frameworks
-  use_frameworks!
+   use_frameworks!
 
-  # Pods for Instagram
+pod 'Appirater'
+pod 'SDWebImage'
 
-  target 'InstagramTests' do
-    inherit! :search_paths
-    # Pods for testing
-  end
-
-  target 'InstagramUITests' do
-    # Pods for testing
-  end
+ 
+# Firebase
+pod 'Firebase/Core'
+pod 'Firebase/Auth'
+pod 'Firebase/Database'
+pod 'Firebase/Analytics'
+pod 'Firebase/Crashlytics'
+pod 'Firebase/Storage'
 
 end

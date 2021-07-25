@@ -4,26 +4,166 @@
 //
 //  Created by Abdelrahman Moustafa on 1/17/21.
 //
-
 import UIKit
 
-class ProfileViewController: UIViewController {
-
+final class ProfileViewController: UIViewController {
+    private var userPosts = [UserPost]()
+    private var collectionView: UICollectionView?
     override func viewDidLoad() {
         super.viewDidLoad()
-
+        view.backgroundColor = .systemBackground
+        configureNavigationBar()
+        let layout = UICollectionViewFlowLayout()
+        layout.scrollDirection = .vertical
+        layout.minimumLineSpacing = 1
+        layout.minimumInteritemSpacing = 1
+        layout.sectionInset = UIEdgeInsets(top: 0, left: 1, bottom: 0, right: 1)
+        let size = (view.width - 4 ) / 3
+        layout.itemSize = CGSize(width: size, height: size)
+        collectionView = UICollectionView(frame: .zero, collectionViewLayout: layout)
+        // cell
+        collectionView?.register(PhotoCollectionViewCell.self, forCellWithReuseIdentifier: PhotoCollectionViewCell.identifier)
+        // headers
+        collectionView?.register(ProfileInfoHeaderCollectionReusableView.self, forSupplementaryViewOfKind: UICollectionView.elementKindSectionHeader, withReuseIdentifier: ProfileInfoHeaderCollectionReusableView.identifier)
+        collectionView?.register(ProfileTabsCollectionReusableView.self, forSupplementaryViewOfKind: UICollectionView.elementKindSectionHeader, withReuseIdentifier: ProfileTabsCollectionReusableView.identifier)
+        collectionView?.delegate = self
+        collectionView?.dataSource = self
+        guard let collectionView = collectionView else {
+            return
+        }
+        view.addSubview(collectionView)
+        
         // Do any additional setup after loading the view.
     }
-    
-
-    /*
-    // MARK: - Navigation
-
-    // In a storyboard-based application, you will often want to do a little preparation before navigation
-    override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
-        // Get the new view controller using segue.destination.
-        // Pass the selected object to the new view controller.
+    override func viewDidLayoutSubviews() {
+        super.viewDidLayoutSubviews()
+        collectionView?.frame = view.bounds
     }
-    */
+    
+    private func configureNavigationBar() {
+        navigationItem.rightBarButtonItem = UIBarButtonItem(image:UIImage(systemName:"gear"),
+                                                            style: .done,
+                                                            target: self,
+                                                            action:#selector(didTapSettingButton)
+        )
+        
+    }
+    @objc  private func didTapSettingButton(){
+        let vc = SettingsViewController()
+        vc.title = "Settings"
+        navigationController?.pushViewController(vc, animated: true)
+    }
+    
+    
+}
+extension ProfileViewController: UICollectionViewDelegate, UICollectionViewDataSource, UICollectionViewDelegateFlowLayout{
+    func numberOfSections(in collectionView: UICollectionView) -> Int {
+        return 2
+    }
+    
+    func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
+        if section == 0 {
+            return 0
+        }
+        //return userPosts.count
+        return 30
+    }
+    
+    func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
+      //  let model = userPosts[indexPath.row]
+        let cell = collectionView.dequeueReusableCell(withReuseIdentifier: PhotoCollectionViewCell.identifier, for: indexPath) as! PhotoCollectionViewCell
+       // cell.configure(with: model)
+        cell.congifure(debug: "test")
+        return cell
+    }
+    func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
+        collectionView.deselectItem(at: indexPath, animated: true)
+        // Open The Post Controller
+        //let model = userPosts[indexPath.row]
+        let vc  = PostViewController(model: nil)
+        
+        vc.title = "Post"
+        vc.navigationItem.largeTitleDisplayMode = .never
+        navigationController?.pushViewController(vc, animated: true)
+    }
+    
+    
+    
+    func collectionView(_ collectionView: UICollectionView, viewForSupplementaryElementOfKind kind: String, at indexPath: IndexPath) -> UICollectionReusableView {
+        guard kind == UICollectionView.elementKindSectionHeader else {
+            // Footer
+            return UICollectionReusableView()
+        }
+        if indexPath.section == 1 {
+            //Tabs Header
+            let tabControlHeader = collectionView.dequeueReusableSupplementaryView(ofKind: kind,
+                                                                         withReuseIdentifier:
+                                                                            ProfileTabsCollectionReusableView.identifier,
+                                                                         for: indexPath) as! ProfileTabsCollectionReusableView
+            tabControlHeader.delegate = self
+            return tabControlHeader
+        }
+        
+        let profileHeader = collectionView.dequeueReusableSupplementaryView(ofKind: kind,
+                                                                     withReuseIdentifier:
+                                                                        ProfileInfoHeaderCollectionReusableView.identifier,
+                                                                     for: indexPath) as! ProfileInfoHeaderCollectionReusableView
+        profileHeader.Delegate = self
+        return profileHeader
+    }
+    
+    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, referenceSizeForHeaderInSection section: Int) -> CGSize {
+        if section == 0 {
+            return CGSize(width: collectionView.width,
+                          height: collectionView.hieght / 3)
+        }
+        // Size of Section 2 "Profile Tabs"
+        return CGSize(width: collectionView.width,
+                      height: 50)
+    }
+    
+}
+// MARK: - ProfileInfoHeaderCollectionReusableViewDelegate
 
+extension ProfileViewController: ProfileInfoHeaderCollectionReusableViewDelegate {
+    func prfoileHeaderDidTapPostsButton(_ header: ProfileInfoHeaderCollectionReusableView) {
+        // Scroll To Posts
+        collectionView?.scrollToItem(at: IndexPath(row: 0, section: 1), at: .top, animated: true)
+    }
+    
+    func prfoileHeaderDidTapFollowersButton(_ header: ProfileInfoHeaderCollectionReusableView) {
+        let vc = ListViewController(data: ["Joe","Joe","Joe",])
+        vc.title = "Followers"
+        vc.navigationItem.largeTitleDisplayMode = .never
+        navigationController?.pushViewController(vc, animated: true)
+    }
+    
+    func prfoileHeaderDidTapFollowingButton(_ header: ProfileInfoHeaderCollectionReusableView) {
+        let vc = ListViewController(data: ["Joe","Joe","Joe",])
+        vc.title = "Following"
+        vc.navigationItem.largeTitleDisplayMode = .never
+        navigationController?.pushViewController(vc, animated: true)
+   
+    }
+    
+    func prfoileHeaderDidTapEditProfileButton(_ header: ProfileInfoHeaderCollectionReusableView) {
+        let vc = EditProfileViewController()
+        vc.title = "Edit Profile"
+        present(UINavigationController(rootViewController: vc) , animated: true)
+   
+    }
+    
+    
+}
+extension ProfileViewController: ProfileTabsCollectionReusableViewDelegate {
+    func didTapGridButtontab() {
+        // reload collection view with data
+    }
+    
+    func didTapTaggedButtontab() {
+        // reload collection view with data
+
+    }
+    
+    
 }
